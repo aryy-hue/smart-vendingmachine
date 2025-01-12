@@ -13,10 +13,7 @@ function Navbar() {
       <div className="navbar-right">
         <img src={'/images/userDefault.png'} alt="Profile" className="profile-pic" />
         <Link to="/profile" className="username">Arya</Link>
-        <div className="cart-icon">
-          <img src={'/icons/cart.svg'} alt="Cart" />
-        </div>
-        <Link to="/checkout" className="navbar-link">Cart</Link>
+        <Link to="/login" className="navbar-link">Logout</Link>
       </div>
     </nav>
   );

@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
-// Register the necessary components for Chart.js
+// Ensure both bar and line elements are registered
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
+  LineElement, // Ensure LineElement is registered
   PointElement,
   Title,
   Tooltip,
@@ -15,25 +16,86 @@ ChartJS.register(
 );
 
 const Chart = () => {
+  const [sensorData, setSensorData] = useState([]);
+  
+  // Fetch sensor data from the backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/sensors'); // Sesuaikan dengan endpoint API Anda
+        setSensorData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Proses data untuk mengelompokkan berdasarkan jam
+  const processData = (data) => {
+    const groupedData = data.reduce((acc, { temperature, humidity, timestamp }) => {
+      const hour = new Date(timestamp).getHours(); // Ambil jam dari timestamp
+
+      // Jika jam belum ada dalam accumulator, inisialisasi
+      if (!acc[hour]) {
+        acc[hour] = { temperatures: [], humidities: [] };
+      }
+
+      // Masukkan suhu dan kelembapan ke dalam array yang sesuai dengan jam
+      acc[hour].temperatures.push(temperature);
+      acc[hour].humidities.push(humidity);
+
+      return acc;
+    }, {});
+
+    // Hitung rata-rata suhu dan kelembapan per jam
+    const labels = [];
+    const avgTemperatures = [];
+    const avgHumidities = [];
+
+    for (let hour = 0; hour < 24; hour++) {
+      if (groupedData[hour]) {
+        labels.push(`${hour}:00`);
+        avgTemperatures.push(
+          groupedData[hour].temperatures.reduce((sum, temp) => sum + temp, 0) / groupedData[hour].temperatures.length
+        );
+        avgHumidities.push(
+          groupedData[hour].humidities.reduce((sum, humidity) => sum + humidity, 0) / groupedData[hour].humidities.length
+        );
+      } else {
+        labels.push(`${hour}:00`);
+        avgTemperatures.push(0); // Jika tidak ada data untuk jam tersebut, isi dengan 0
+        avgHumidities.push(0);
+      }
+    }
+
+    return { labels, avgTemperatures, avgHumidities };
+  };
+
+  // Proses data jika sudah ada
+  const { labels, avgTemperatures, avgHumidities } = sensorData.length ? processData(sensorData) : { labels: [], avgTemperatures: [], avgHumidities: [] };
+
+  // Persiapkan data untuk chart
   const data = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Labels for each month
+    labels: labels,
     datasets: [
       {
-        type: 'bar', // This is a bar chart for temperature
+        type: 'bar',
         label: 'Suhu',
-        data: [30, 50, 60, 70, 90, 100, 120], // Temperature data
-        backgroundColor: 'rgba(54, 162, 235, 0.5)', // Bar color
-        borderColor: 'rgba(54, 162, 235, 1)', // Bar border color
+        data: avgTemperatures,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 1,
       },
       {
-        type: 'line', // This is a line chart for humidity
+        type: 'line',
         label: 'Humidity',
-        data: [20, 40, 50, 60, 80, 90, 110], // Humidity data
-        borderColor: 'rgba(75, 192, 192, 1)', // Line color
-        backgroundColor: 'rgba(75, 192, 192, 0.5)', // Line area fill color
+        data: avgHumidities,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
         fill: false,
-        tension: 0.4, // Line smoothing
+        tension: 0.4, // For a smooth curve
       },
     ],
   };
@@ -42,21 +104,29 @@ const Chart = () => {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top', // Position of the legend
+        position: 'top',
       },
       title: {
         display: true,
-        text: 'Suhu dan Humidity', // Chart title
+        text: 'Suhu dan Humidity per Jam',
       },
     },
     scales: {
       y: {
-        beginAtZero: true, // Y-axis starts from 0
+        beginAtZero: true,
       },
     },
   };
 
-  return <Bar data={data} options={options} />; // Rendering the Bar chart
+  return (
+    <div>
+      {sensorData.length > 0 ? (
+        <Bar data={data} options={options} />
+      ) : (
+        <p>Loading data...</p>
+      )}
+    </div>
+  );
 };
 
 export default Chart;

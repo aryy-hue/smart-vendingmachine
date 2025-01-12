@@ -1,62 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function TableDataBarang() {
-  // Data dummy untuk snack dan minuman
-  const data = [
-    {
-      id: 1,
-      gambar: 'https://via.placeholder.com/100', // Gambar KitKat
-      namaBarang: 'KitKat',
-      kategori: 'Snack',
-      tanggalKedaluwarsa: '2025-06-15',
-    },
-    {
-      id: 2,
-      gambar: 'https://via.placeholder.com/100', // Gambar Coca-Cola
-      namaBarang: 'Coca-Cola',
-      kategori: 'Minuman',
-      tanggalKedaluwarsa: '2024-12-31',
-    },
-    {
-      id: 3,
-      gambar: 'https://via.placeholder.com/100', // Gambar Sprite
-      namaBarang: 'Sprite',
-      kategori: 'Minuman',
-      tanggalKedaluwarsa: '2024-11-30',
-    },
-    {
-      id: 4,
-      gambar: 'https://via.placeholder.com/100', // Gambar Lays
-      namaBarang: 'Lays',
-      kategori: 'Snack',
-      tanggalKedaluwarsa: '2025-01-20',
-    },
-    {
-      id: 5,
-      gambar: 'https://via.placeholder.com/100', // Gambar Pocari Sweat
-      namaBarang: 'Pocari Sweat',
-      kategori: 'Minuman',
-      tanggalKedaluwarsa: '2025-03-10',
-    },
-    {
-      id: 6,
-      gambar: 'https://via.placeholder.com/100', // Gambar Oreo
-      namaBarang: 'Oreo',
-      kategori: 'Snack',
-      tanggalKedaluwarsa: '2025-05-05',
-    },
-  ];
-
-  // Pagination state
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2;
+  const itemsPerPage = 4;
 
-  // Data untuk halaman saat ini
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/products');
+        const result = await response.json();
+        if (result.message === 'Products retrieved successfully') {
+          setData(result.data);
+        } else {
+          setError('Failed to retrieve products');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentData = data.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Fungsi untuk navigasi
   const nextPage = () => {
     if (currentPage < Math.ceil(data.length / itemsPerPage)) {
       setCurrentPage(currentPage + 1);
@@ -73,12 +48,32 @@ export default function TableDataBarang() {
     alert(`Update data dengan ID: ${id}`);
   };
 
-  const handleDelete = (id) => {
-    alert(`Hapus data dengan ID: ${id}`);
+  // Handle delete product
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this product?");
+    if (confirmDelete) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/products/delete/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setData(data.filter(item => item.id !== id)); // Remove item from the state
+          alert('Product deleted successfully');
+        } else {
+          alert('Failed to delete the product');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
   };
 
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
   return (
-    <div style={{ marginTop: '20px', width: '100%', height: '350px' }}>
+    <div style={{ marginTop: '20px', width: '100%', height: '575px' }}>
       <table
         style={{
           width: '1160px',
@@ -97,8 +92,8 @@ export default function TableDataBarang() {
             <th style={{ padding: '10px', width: '50px' }}>ID</th>
             <th style={{ padding: '10px', width: '200px' }}>Gambar</th>
             <th style={{ padding: '10px', width: '200px' }}>Nama Barang</th>
-            <th style={{ padding: '10px', width: '150px' }}>Kategori</th>
-            <th style={{ padding: '10px', width: '150px' }}>Tanggal Kadaluarsa</th>
+            <th style={{ padding: '10px', width: '150px' }}>Harga</th>
+            <th style={{ padding: '10px', width: '100px' }}>Stok</th>
             <th style={{ padding: '10px', width: '100px' }}>Aksi</th>
           </tr>
         </thead>
@@ -107,20 +102,27 @@ export default function TableDataBarang() {
             <tr key={item.id} style={{ borderBottom: '1px solid #ddd' }}>
               <td style={{ padding: '10px', width: '50px' }}>{item.id}</td>
               <td style={{ padding: '10px', width: '200px' }}>
-                <img src={item.gambar} alt={item.namaBarang} style={{ width: '100px', height: 'auto' }} />
+                <img
+                  src={`images/${item.image_url}`}
+                  alt={item.name}
+                  style={{ width: '100px', height: 'auto' }}
+                />
               </td>
-              <td style={{ padding: '10px', width: '200px' }}>{item.namaBarang}</td>
-              <td style={{ padding: '10px', width: '150px' }}>{item.kategori}</td>
-              <td style={{ padding: '10px', width: '150px' }}>{item.tanggalKedaluwarsa}</td>
+              <td style={{ padding: '10px', width: '200px' }}>{item.name}</td>
+              <td style={{ padding: '10px', width: '150px' }}>{item.price}</td>
+              <td style={{ padding: '10px', width: '100px' }}>{item.stock}</td>
               <td style={{ padding: '10px', width: '100px', textAlign: 'center' }}>
-                {/* Ikon Update */}
                 <button
                   onClick={() => handleUpdate(item.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '10px' }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    marginRight: '10px',
+                  }}
                 >
-                  <i className="fas fa-edit" style={{ color: 'blue', fontSize: '18px' }}></i>
+                  {/* <i className="fas fa-edit" style={{ color: 'blue', fontSize: '18px' }}></i> */}
                 </button>
-                {/* Ikon Delete */}
                 <button
                   onClick={() => handleDelete(item.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
@@ -132,7 +134,6 @@ export default function TableDataBarang() {
           ))}
         </tbody>
       </table>
-      {/* Navigasi Pagination */}
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
         <button
           onClick={prevPage}
@@ -150,7 +151,9 @@ export default function TableDataBarang() {
           disabled={currentPage >= Math.ceil(data.length / itemsPerPage)}
           style={{
             padding: '10px 20px',
-            cursor: currentPage >= Math.ceil(data.length / itemsPerPage) ? 'not-allowed' : 'pointer',
+            cursor: currentPage >= Math.ceil(data.length / itemsPerPage)
+              ? 'not-allowed'
+              : 'pointer',
           }}
         >
           Next

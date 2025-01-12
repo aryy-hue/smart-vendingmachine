@@ -6,16 +6,16 @@ export default function Navbar() {
     <nav className="navbar-admin">
       {/* Bagian Bawah */}
       <div className="navbar-bottom">
-        <Link to="/admin">
-          <button>Stok Barang</button>
+        <Link to="/monitoring">
+          <button>Monitoring</button>
         </Link>
-        <Link to="/data-barang">
+        <Link to="/admin">
           <button>Data Barang</button>
         </Link>
         <Link to="/transaksi">
           <button>Transaksi</button>
         </Link>
-        <Link to="/logout">
+        <Link to="/login">
           <button>Logout</button>
         </Link>
       </div>

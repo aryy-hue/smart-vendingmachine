@@ -61,7 +61,7 @@ export default function TableStokBarang() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2;
+  const itemsPerPage = 3;
 
   // Data untuk halaman saat ini
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -90,7 +90,7 @@ export default function TableStokBarang() {
   };
 
   return (
-    <div style={{ marginTop: '20px', width: '100%', height: '350px' }}>
+    <div style={{ marginTop: '20px', width: '100%', height: '575px' }}>
       <table
         style={{
           width: '1160px',

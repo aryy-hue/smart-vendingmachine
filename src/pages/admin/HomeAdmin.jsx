@@ -10,17 +10,6 @@ export default function HomeAdmin() {
     <div className="admin">
       <div className="container">
         <Navbar />
-        <div className="top-section">
-          <div className="chart-box">
-            <Chart />
-          </div>
-          <div className="chart-box">
-            <Chart />
-          </div>
-          <div className="chart-box">
-            <Chart /> 
-          </div>
-        </div>
         {/* Tambahkan Data Table di bawah chart */}
         <div className="data-table-section">
           <div className="data-table-header">

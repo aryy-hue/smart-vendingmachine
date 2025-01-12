@@ -9,24 +9,14 @@ export default function DataBarang() {
     <div className="admin">
       <div className="container">
         <Navbar />
-        <div className="top-section">
-          <div className="chart-box">
-            <Chart />
-          </div>
-          <div className="chart-box">
-            <Chart />
-          </div>
-          <div className="chart-box">
-            <Chart />
-          </div>
-        </div>
+       
         {/* Tambahkan Data Table di bawah chart */}
         <div className="data-table-section">
           <div className="data-table-header">
             <h1>Data Barang</h1>
-            <Link to="/data-barang/tambah">
+            {/* <Link to="/data-barang/add">
               <button className="add-item-btn">Tambah Data Barang</button>
-            </Link>
+            </Link> */}
           </div>
           <TableDataBarang />
         </div>
